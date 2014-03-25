@@ -483,7 +483,10 @@ int XMLNode::get(const std::string &attribute, InterpolationArray *value) const
 {
     std::string s;
     if(!get(attribute, &s)) return 0;
-
+	//implementation of the XMLNode::get method doesn't allow to override the elements consisting of pairs 
+	//We must create new element (InterpolationArray *tmp) and override old propereties manually (InterpolationArray *value)
+	InterpolationArray *tmp=NULL;
+	if (value->size()>0) tmp = new InterpolationArray();
     std::vector<std::string> pairs = StringUtils::split(s, ' ');
     for(unsigned int i=0; i<pairs.size(); i++)
     {
@@ -509,11 +512,22 @@ int XMLNode::get(const std::string &attribute, InterpolationArray *value) const
                   pair[1].c_str(), attribute.c_str());
             exit(-1);
         }
-        if(!value->push_back(x, y))
-        {
-            return 0;
-        }
+		//if tmp is undefined, write properties to value
+		if (tmp != NULL) {
+			if (!tmp->push_back(x, y))
+			{
+				return 0;
+			}
+			value->setY(i, tmp->getY(i));
+		}
+		else {
+			if (!value->push_back(x, y))
+			{
+				return 0;
+			}
+		}
     }   // for i
+	if (tmp != NULL) delete tmp;
     return 1;
 }   // get(InterpolationArray)
 
